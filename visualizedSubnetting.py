@@ -155,7 +155,7 @@ class SubnettingApp(QMainWindow):
             self.scene.addItem(line)
 
             # Hiển thị địa chỉ mạng gần switch
-            network_address_label = QGraphicsTextItem(f"Net: {network_address}")
+            network_address_label = QGraphicsTextItem(f"Net {i}: {network_address}")
             address_x = x - 25
             address_y = y + 20  # Đặt dưới switch
             network_address_label.setPos(address_x - 20, address_y)
