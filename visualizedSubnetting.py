@@ -153,7 +153,7 @@ class SubnettingApp(QMainWindow):
             x = center_x + radius * cos(angle)
             y = center_y + radius * sin(angle)
 
-            switch_pixmap = QPixmap("switch.png").scaled(70, 50)
+            switch_pixmap = QPixmap("switch.png").scaled(70, 45)
             switch_item = QGraphicsPixmapItem(switch_pixmap)
             switch_item.setPos(x - 35, y - 25)
             self.scene.addItem(switch_item)
