@@ -1,4 +1,4 @@
-from math import log2, ceil
+from math import log2, floor, ceil
 class Subnetting:
     def __init__(self, ip, mask):
         self.ip = ip
@@ -79,9 +79,11 @@ class Subnetting:
 
 class CIDR(Subnetting):
     def calculate_subnets(self, num_subnets):
-        prefix_length = self.mask + (num_subnets - 1).bit_length()
-        if prefix_length > 32:
-            raise ValueError("Số lượng mạng con quá lớn.")
+        total = self.calculate_num_hosts(self.mask) + 2      
+        if floor(log2(total/num_subnets)) < 2:
+            raise ValueError(f"Không thể chia vì với {num_subnets} mạng con thì mỗi mạng có 0 địa chỉ khả dụng .")
+        else:
+            prefix_length = 32 - floor(log2(total/num_subnets))        
         subnets = []
         subnet_size = 2 ** (32 - prefix_length)
 
