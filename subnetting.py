@@ -101,14 +101,14 @@ class VLSM(Subnetting):
 
         for i, hosts in enumerate(host_requirements):
             if i>=1:
-                prefix_new = 32 - ceil(log2(hosts))
-                prefix_old = 32 - ceil(log2(host_requirements[i-1]))
+                prefix_new = 32 - ceil(log2(hosts+2))
+                prefix_old = 32 - ceil(log2(host_requirements[i-1]+2))
                 if (prefix_new == prefix_old or prefix_new - prefix_old==1):
                     prefix_length = prefix_old
                 else:
                     prefix_length = prefix_new 
             else:
-                required_size = ceil(log2(hosts))
+                required_size = ceil(log2(hosts+2))
                 prefix_length = 32 - required_size
             if 2**(32 - prefix_length) > 2**(32 - self.mask):
                 raise ValueError("Không đủ địa chỉ để cấp phát cho yêu cầu.")            
