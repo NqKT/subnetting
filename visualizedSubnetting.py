@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPen, QPixmap, QFont
 from math import cos, sin, radians
-from subnetting import CIDR, VLSM 
+from subnetting import CIDR, VLSM
 
 class SubnettingApp(QMainWindow):
     def __init__(self):

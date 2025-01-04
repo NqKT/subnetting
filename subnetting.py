@@ -1,4 +1,3 @@
-from math import log2, floor, ceil
 class Subnetting:
     def __init__(self, ip, mask):
         self.ip = ip
@@ -6,6 +5,18 @@ class Subnetting:
         self.network_address = self.calculate_network_address()
         self.broadcast_address = self.calculate_broadcast_address()
 
+    def floor_log2(self, x):
+        k = 0
+        while (1 << k) <= x:
+            k += 1
+        return k - 1
+    
+    def ceil_log2(self, x):
+        k = 0
+        while (1 << k) < x:
+            k += 1
+        return k
+    
     def ip_to_binary(self, ip): # Chuyển đổi IP sang dạng nhị phân        
         octets = ip.split('.')        
         binary_ip = ''
@@ -80,10 +91,10 @@ class Subnetting:
 class CIDR(Subnetting):
     def calculate_subnets(self, num_subnets):
         total = self.calculate_num_hosts(self.mask) + 2      
-        if floor(log2(total/num_subnets)) < 2:
+        if self.floor_log2(total/num_subnets) < 2:
             raise ValueError(f"Không thể chia vì với {num_subnets} mạng con thì mỗi mạng có 0 địa chỉ khả dụng .")
         else:
-            prefix_length = 32 - floor(log2(total/num_subnets))        
+            prefix_length = 32 - self.floor_log2(total/num_subnets)        
         subnets = []
         subnet_size = 2 ** (32 - prefix_length)
 
@@ -103,14 +114,14 @@ class VLSM(Subnetting):
 
         for i, hosts in enumerate(host_requirements):
             if i>=1:
-                prefix_new = 32 - ceil(log2(hosts+2))
-                prefix_old = 32 - ceil(log2(host_requirements[i-1]+2))
+                prefix_new = 32 - self.ceil_log2(hosts+2)
+                prefix_old = 32 - self.ceil_log2(host_requirements[i-1]+2)
                 if (prefix_new == prefix_old or prefix_new - prefix_old==1):
                     prefix_length = prefix_old
                 else:
                     prefix_length = prefix_new 
             else:
-                required_size = ceil(log2(hosts+2))
+                required_size = self.ceil_log2(hosts+2)
                 prefix_length = 32 - required_size
             if 2**(32 - prefix_length) > 2**(32 - self.mask):
                 raise ValueError("Không đủ địa chỉ để cấp phát cho yêu cầu.")            
