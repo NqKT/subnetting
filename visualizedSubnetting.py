@@ -131,45 +131,72 @@ class SubnettingApp(QMainWindow):
         self.scene.clear()
 
         center_x, center_y = 450, 300
-        radius = 200
+        router_radius = 150
+        switch_radius = 100
 
         router_pixmap = QPixmap("router.png").scaled(80, 60)
-        router_item = QGraphicsPixmapItem(router_pixmap)
-        router_item.setPos(center_x - 40, center_y - 30)
-        self.scene.addItem(router_item)
+        switch_pixmap = QPixmap("switch.png").scaled(70, 45)
 
-        router_label = QGraphicsTextItem("Router")
-        router_label.setFont(QFont("Arial", 12, QFont.Bold))
-        router_label.setPos(center_x - 25, center_y + 40)
-        self.scene.addItem(router_label)
+        num_subnets = len(subnets)
+        max_switches_per_router = 3
 
-        num_switches = len(subnets)
-        angle_step = 360 / num_switches
+        num_routers = (num_subnets + max_switches_per_router - 1) // max_switches_per_router
 
+        routers = []
+
+        # Tạo các router và đặt vị trí của chúng
+        for r in range(num_routers):
+            x_router = center_x + router_radius * (r * 2 - num_routers + 1)
+            y_router = center_y
+
+            router_item = QGraphicsPixmapItem(router_pixmap)
+            router_item.setPos(x_router - 40, y_router - 30)
+            self.scene.addItem(router_item)
+
+            router_label = QGraphicsTextItem(f"Router {r + 1}")
+            router_label.setFont(QFont("Arial", 12, QFont.Bold))
+            router_label.setPos(x_router - 30, y_router + 40)
+            self.scene.addItem(router_label)
+
+            routers.append((x_router, y_router))
+
+        # Vẽ đường nối giữa các router
+        for r in range(num_routers - 1):
+            x_router1, y_router1 = routers[r]
+            x_router2, y_router2 = routers[r + 1]
+
+            line = QGraphicsLineItem(x_router1, y_router1, x_router2, y_router2)
+            line.setPen(QPen(Qt.black, 2, Qt.DashLine))
+            self.scene.addItem(line)
+
+        # Phân bố switch cho từng router
         for i, subnet in enumerate(subnets):
-            network_address = subnet.get('Địa chỉ mạng', 'N/A')
+            router_index = i // max_switches_per_router
+            x_router, y_router = routers[router_index]
 
-            angle = radians(angle_step * i)
-            x = center_x + radius * cos(angle)
-            y = center_y + radius * sin(angle)
+            switch_angle = radians(100 * (i % max_switches_per_router) - 70) 
+            x_switch = x_router + switch_radius * cos(switch_angle)
+            y_switch = y_router + switch_radius * sin(switch_angle)
 
-            switch_pixmap = QPixmap("switch.png").scaled(70, 45)
             switch_item = QGraphicsPixmapItem(switch_pixmap)
-            switch_item.setPos(x - 35, y - 25)
+            switch_item.setPos(x_switch - 35, y_switch - 25)
             self.scene.addItem(switch_item)
 
             switch_label = QGraphicsTextItem(f"Switch {i + 1}")
             switch_label.setFont(QFont("Arial", 10, QFont.Bold))
-            switch_label.setPos(x - 30, y + 30)
+            switch_label.setPos(x_switch - 30, y_switch + 30)
             self.scene.addItem(switch_label)
 
-            line = QGraphicsLineItem(center_x, center_y, x, y)
+            # Vẽ đường nối giữa router và switch
+            line = QGraphicsLineItem(x_router, y_router, x_switch, y_switch)
             line.setPen(QPen(Qt.black, 2))
             self.scene.addItem(line)
 
+            # Hiển thị thông tin mạng của switch
+            network_address = subnet.get('Địa chỉ mạng', 'N/A')
             network_label = QGraphicsTextItem(f"Net: {network_address}")
             network_label.setFont(QFont("Arial", 10))
-            network_label.setPos(x - 50, y + 50)
+            network_label.setPos(x_switch - 50, y_switch + 50)
             self.scene.addItem(network_label)
 
     def export_results(self):
@@ -200,7 +227,6 @@ class TopologyDialog(QDialog):
 
         # Đặt layout cho QDialog
         self.setLayout(layout)
-
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

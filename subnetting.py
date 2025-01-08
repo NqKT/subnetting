@@ -17,7 +17,7 @@ class Subnetting:
             k += 1
         return k
     
-    def ip_to_binary(self, ip): # Chuyển đổi IP sang dạng nhị phân        
+    def ip_to_binary(self, ip): 
         octets = ip.split('.')        
         binary_ip = ''
 
@@ -135,7 +135,7 @@ class VLSM(Subnetting):
 
 if __name__ == "__main__":
     mode = input("Chọn chế độ (CIDR/VLSM): ").strip().upper()
-    ip, mask = input("Nhập địa chỉ IP và mặt nạ mạng (VD: 192.168.1.0/24): ").strip().split('/')
+    ip, mask = input("Nhập địa chỉ IP và mặt nạ mạng (VD: 192.168.1.0/24): ")
 
     if mode == "CIDR":
         num_subnets = int(input("Nhập số mạng con cần chia: ").strip())
