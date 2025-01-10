@@ -89,6 +89,10 @@ class Subnetting:
 
 
 class CIDR(Subnetting):
+    def __init__(self, ip, mask):
+        super().__init__(ip, mask)
+        self.prefix_length = None
+
     def calculate_subnets(self, num_subnets):
         total = self.calculate_num_hosts(self.mask) + 2      
         if self.floor_log2(total/num_subnets) < 2:
@@ -107,6 +111,11 @@ class CIDR(Subnetting):
 
 
 class VLSM(Subnetting):
+    def __init__(self, ip, mask):
+        super().__init__(ip, mask)
+        self.prefix_length = None
+        self.available_network = None
+        
     def calculate_subnets(self, host_requirements):
         host_requirements.sort(reverse=True)
         subnets = []

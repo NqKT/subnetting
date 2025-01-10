@@ -15,6 +15,73 @@ class SubnettingApp(QMainWindow):
         self.initUI()
 
     def initUI(self):
+        self.start_screen()
+
+    def start_screen(self):
+        self.central_widget = QWidget()
+        self.setCentralWidget(self.central_widget)
+
+        # Đặt hình nền với lớp phủ mờ
+        self.central_widget.setStyleSheet("""
+            background-image: url('bg.webp');
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: cover;
+        """)
+
+        # Thêm lớp phủ mờ cho toàn bộ widget
+        overlay = QLabel(self.central_widget)
+        overlay.setStyleSheet("""
+            background-color: rgba(255, 255, 255, 0.7); /* Lớp phủ màu trắng, mờ 70% */
+            position: absolute;
+            border-radius: 10px;
+        """)
+        overlay.setGeometry(0, 0, self.width(), self.height())
+
+        layout = QVBoxLayout()
+
+        title_label = QLabel()
+        title_label.setText("""
+            <p style="
+                font-size: 28px; 
+                font-weight: bold; 
+                color: #44a3e3; 
+                background-color: rgba(203, 243, 244, 0.8); 
+                border-radius: 10px; 
+                padding: 10px; 
+                text-align: center; 
+                -webkit-text-stroke: 1px black;">Welcome to the Subnetting Tool</p>
+        """)
+        title_label.setStyleSheet("""
+            font-size: 28px; 
+            font-weight: bold; 
+            color: #ffa1a1; 
+            background-color: rgba(240, 243, 244, 0.8); /* Nền trong suốt */
+            border: 2px solid black; /* Viền đen */
+            border-radius: 10px;
+            padding: 10px;
+            text-align: center;
+        """)
+
+        title_label.setAlignment(Qt.AlignCenter)
+
+        start_button = QPushButton("Start")
+        start_button.setStyleSheet("""
+            font-size: 18px;
+            padding: 8px 20px;
+            color: white;
+            background-color: #2E86C1;
+            border: none;
+            border-radius: 10px;
+        """)
+        start_button.clicked.connect(self.subnetting_screen)
+
+        layout.addWidget(title_label)
+        layout.addWidget(start_button)
+
+        self.central_widget.setLayout(layout)
+
+    def subnetting_screen(self):
         layout = QVBoxLayout()
 
         # Algorithm selection
@@ -42,6 +109,13 @@ class SubnettingApp(QMainWindow):
         layout.addWidget(self.extra_input_label)
         layout.addWidget(self.extra_input_field)
 
+        # File input button
+        self.file_button = QPushButton("Nhập từ file")
+        self.file_button.setFont(QFont("Arial", 12, QFont.Bold))
+        self.file_button.setStyleSheet("background-color: #6c757d; color: white; border-radius: 5px;")
+        self.file_button.clicked.connect(self.load_from_file)
+        layout.addWidget(self.file_button)
+
         # Run button
         self.run_button = QPushButton("Tính toán")
         self.run_button.setFont(QFont("Arial", 12, QFont.Bold))
@@ -54,7 +128,7 @@ class SubnettingApp(QMainWindow):
         self.export_button.setFont(QFont("Arial", 12, QFont.Bold))
         self.export_button.setStyleSheet("background-color: #0275d8; color: white; border-radius: 5px;")
         self.export_button.clicked.connect(self.export_results)
-        self.export_button.setEnabled(False)  # Vô hiệu hóa ban đầu
+        self.export_button.hide()  # Ẩn nút ban đầu
         layout.addWidget(self.export_button)
 
         # Topology button
@@ -84,6 +158,32 @@ class SubnettingApp(QMainWindow):
         container.setLayout(layout)
         self.setCentralWidget(container)
 
+    def load_from_file(self):
+        file_path, _ = QFileDialog.getOpenFileName(self, "Chọn file", "", "Text Files (*.txt);;All Files (*)")
+        if file_path:
+            try:
+                with open(file_path, 'r', encoding='utf-8') as file:
+                    lines = file.readlines()
+                    if len(lines) < 3:
+                        raise ValueError("File không đúng định dạng. Vui lòng kiểm tra nội dung.")
+
+                    # Lấy giá trị từ file
+                    algorithm = lines[0].strip()
+                    ip_mask = lines[1].strip()
+                    extra_input = lines[2].strip()
+
+                    # Kiểm tra thuật toán hợp lệ
+                    if algorithm not in ["CIDR", "VLSM"]:
+                        raise ValueError("Thuật toán không hợp lệ. Chỉ chấp nhận CIDR hoặc VLSM.")
+
+                    # Gán giá trị lên giao diện
+                    self.algorithm_combo.setCurrentText(algorithm)
+                    self.input_field.setText(ip_mask)
+                    self.extra_input_field.setText(extra_input)
+
+            except Exception as e:
+                QMessageBox.warning(self, "Lỗi", str(e))
+
     def run_algorithm(self):
         algorithm = self.algorithm_combo.currentText()
         ip_mask = self.input_field.text().strip()
@@ -111,7 +211,7 @@ class SubnettingApp(QMainWindow):
                 subnets = vlsm.calculate_subnets(host_requirements)
 
             self.display_output(subnets)
-            self.export_button.setEnabled(True)
+            self.export_button.show()
             self.topology_button.show() 
 
         except ValueError as e:
