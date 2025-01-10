@@ -124,7 +124,7 @@ class VLSM(Subnetting):
         for i, hosts in enumerate(host_requirements):
             if i>=1:
                 prefix_new = 32 - self.ceil_log2(hosts+2)
-                prefix_old = 32 - self.ceil_log2(host_requirements[i-1]+2)
+                prefix_old = self.prefix_length
                 if (prefix_new == prefix_old or prefix_new - prefix_old==1):
                     self.prefix_length = prefix_old
                 else:

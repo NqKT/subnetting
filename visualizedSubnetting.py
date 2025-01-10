@@ -67,7 +67,8 @@ class SubnettingApp(QMainWindow):
 
         start_button = QPushButton("Start")
         start_button.setStyleSheet("""
-            font-size: 18px;
+            font-size: 22px;
+            font-weight: bold;            
             padding: 8px 20px;
             color: white;
             background-color: #2E86C1;
