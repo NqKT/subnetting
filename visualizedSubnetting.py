@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPen, QPixmap, QFont
 from math import cos, sin, radians
-from subnetting import CIDR, VLSM
+from subnetting import *
 
 class SubnettingApp(QMainWindow):
     def __init__(self):
@@ -144,7 +144,10 @@ class SubnettingApp(QMainWindow):
         self.output_area.setFont(QFont("Consolas", 12))
         self.output_area.setStyleSheet("background-color: #f9f9f9; border: 1px solid #ccc;")
         self.output_area.setReadOnly(True)
+        self.guidance_area = QTextEdit()
+        self.guidance_area.setReadOnly(True)
         layout.addWidget(self.output_area)
+        layout.addWidget(self.guidance_area)
 
         # Network Topology Visualization
         self.topology_view = QGraphicsView()
@@ -196,21 +199,82 @@ class SubnettingApp(QMainWindow):
         try:
             ip, mask = ip_mask.split('/')
             mask = int(mask)
+
+            ip_address = Subnetting(ip, mask)
+            if ip == ip_address.network_address:
+                reply = QMessageBox.information(self, "Thông báo", f"Đây là địa chỉ mạng. Bạn vẫn sẽ chia mạng từ địa chỉ {ip} chứ?", QMessageBox.Ok | QMessageBox.Cancel)
+                if reply == QMessageBox.Cancel:
+                    return
+            elif ip == ip_address.broadcast_address:
+                reply = QMessageBox.information(self, "Thông báo", f"Đây là địa chỉ broadcast. Bạn vẫn sẽ chia mạng từ địa chỉ {ip} chứ?", QMessageBox.Ok | QMessageBox.Cancel)
+                if reply == QMessageBox.Cancel:
+                    return
+            else:
+                reply = QMessageBox.information(self, "Thông báo", f"Đây là địa chỉ trạm. Bạn vẫn sẽ chia mạng từ địa chỉ {ip} chứ?", QMessageBox.Ok | QMessageBox.Cancel)
+                if reply == QMessageBox.Cancel:
+                    return
+
         except ValueError:
             QMessageBox.warning(self, "Lỗi", "Địa chỉ IP hoặc mặt nạ mạng không hợp lệ.")
             return
 
         try:
+            ip, mask = ip_mask.split('/')
+            mask = int(mask)
             if algorithm == "CIDR":
                 num_subnets = int(extra_input)
                 cidr = CIDR(ip, mask)
                 subnets = cidr.calculate_subnets(num_subnets)
+                network_address = cidr.network_address
+                broadcast_address = cidr.broadcast_address 
+                total = 1 << (32 - mask)
+                max_per_subnet = total // num_subnets
+                new_mask = cidr.prefix_length     
+                station_part = 32 - new_mask           
+
+                if ip == network_address:
+                    guidance = (
+                        f"Ta có, {ip}/{mask} là địa chỉ mạng.\n"
+                        f"=> Mạng này có phạm vi là 2^(32-{mask}) = {total}.\n"
+                        f"Với yêu cầu {num_subnets} mạng thì mỗi mạng sẽ có phạm vi tối đa là ({total}/{num_subnets}) = {max_per_subnet}.\n"
+                        f"Vì tối đa chỉ {max_per_subnet} nên mỗi mạng con sẽ có phạm vi {1 << (station_part)} = 2^{station_part} địa chỉ.\n"
+                        f"=> Mỗi mạng sẽ cần {station_part} bit phần trạm.\n"
+                        f"=> Số bit phần mạng là 32 - {station_part} = {new_mask}. Do đó, có các mạng con mới /{new_mask}."
+                    )
+                elif ip == broadcast_address:
+                    guidance = (
+                        f"Ta có, {ip}/{mask} là địa chỉ quảng bá.\n"
+                        f"=> Địa chỉ mạng là {network_address}, mạng này có phạm vi là 2^(32-{mask}) = {total}.\n"
+                        f"Với yêu cầu {num_subnets} mạng thì mỗi mạng sẽ có phạm vi tối đa là ({total}/{num_subnets}) = {max_per_subnet}.\n"
+                        f"Vì tối đa chỉ {max_per_subnet} nên mỗi mạng con sẽ có phạm vi {1 << (station_part)} = 2^{station_part} địa chỉ.\n"
+                        f"=> Mỗi mạng sẽ cần {station_part} bit phần trạm.\n"
+                        f"=> Số bit phần mạng là 32 - {station_part} = {new_mask}. Do đó, có các mạng con mới /{new_mask}."
+                    )
+                else:
+                    guidance = (
+                        f"Ta có, {ip}/{mask} là địa chỉ trạm.\n"
+                        f"=> Địa chỉ mạng là {network_address}, mạng này có phạm vi là 2^(32-{mask}) = {total}.\n"
+                        f"Với yêu cầu {num_subnets} mạng thì mỗi mạng sẽ có phạm vi tối đa là ({total}/{num_subnets}) = {max_per_subnet}.\n"
+                        f"Vì tối đa chỉ {max_per_subnet} nên mỗi mạng con sẽ có phạm vi {1 << (station_part)} = 2^{station_part} địa chỉ.\n"
+                        f"=> Mỗi mạng sẽ cần {station_part} bit phần trạm.\n"
+                        f"=> Số bit phần mạng là 32 - {station_part} = {new_mask}. Do đó, có các mạng con mới /{new_mask}."
+                    )
             elif algorithm == "VLSM":
                 host_requirements = list(map(int, extra_input.split(',')))
                 vlsm = VLSM(ip, mask)
                 subnets = vlsm.calculate_subnets(host_requirements)
+                network_address = vlsm.network_address
+                broadcast_address = vlsm.broadcast_address 
+                total = 1 << (32 - mask)
+                max_per_subnet = total // num_subnets
+                new_mask = cidr.prefix_length     
+                station_part = 32 - new_mask 
 
-            self.display_output(subnets)
+
+            self.display_output(subnets)            
+            self.guidance_area.setPlainText(guidance)
+            font = QFont("Arial", 10)
+            self.guidance_area.setFont(font)
             self.export_button.show()
             self.topology_button.show() 
 
