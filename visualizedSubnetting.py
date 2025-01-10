@@ -233,42 +233,40 @@ class SubnettingApp(QMainWindow):
                 station_part = 32 - new_mask           
 
                 if ip == network_address:
-                    guidance = (
-                        f"Ta có, {ip}/{mask} là địa chỉ mạng.\n"
-                        f"=> Mạng này có phạm vi là 2^(32-{mask}) = {total}.\n"
-                        f"Với yêu cầu {num_subnets} mạng thì mỗi mạng sẽ có phạm vi tối đa là ({total}/{num_subnets}) = {max_per_subnet}.\n"
-                        f"Vì tối đa chỉ {max_per_subnet} nên mỗi mạng con sẽ có phạm vi {1 << (station_part)} = 2^{station_part} địa chỉ.\n"
-                        f"=> Mỗi mạng sẽ cần {station_part} bit phần trạm.\n"
-                        f"=> Số bit phần mạng là 32 - {station_part} = {new_mask}. Do đó, có các mạng con mới /{new_mask}."
-                    )
+                    type_address = "mạng"
                 elif ip == broadcast_address:
-                    guidance = (
-                        f"Ta có, {ip}/{mask} là địa chỉ quảng bá.\n"
-                        f"=> Địa chỉ mạng là {network_address}, mạng này có phạm vi là 2^(32-{mask}) = {total}.\n"
-                        f"Với yêu cầu {num_subnets} mạng thì mỗi mạng sẽ có phạm vi tối đa là ({total}/{num_subnets}) = {max_per_subnet}.\n"
-                        f"Vì tối đa chỉ {max_per_subnet} nên mỗi mạng con sẽ có phạm vi {1 << (station_part)} = 2^{station_part} địa chỉ.\n"
-                        f"=> Mỗi mạng sẽ cần {station_part} bit phần trạm.\n"
-                        f"=> Số bit phần mạng là 32 - {station_part} = {new_mask}. Do đó, có các mạng con mới /{new_mask}."
-                    )
+                    type_address = "quảng bá"
                 else:
-                    guidance = (
-                        f"Ta có, {ip}/{mask} là địa chỉ trạm.\n"
-                        f"=> Địa chỉ mạng là {network_address}, mạng này có phạm vi là 2^(32-{mask}) = {total}.\n"
-                        f"Với yêu cầu {num_subnets} mạng thì mỗi mạng sẽ có phạm vi tối đa là ({total}/{num_subnets}) = {max_per_subnet}.\n"
-                        f"Vì tối đa chỉ {max_per_subnet} nên mỗi mạng con sẽ có phạm vi {1 << (station_part)} = 2^{station_part} địa chỉ.\n"
-                        f"=> Mỗi mạng sẽ cần {station_part} bit phần trạm.\n"
-                        f"=> Số bit phần mạng là 32 - {station_part} = {new_mask}. Do đó, có các mạng con mới /{new_mask}."
-                    )
+                    type_address = "trạm"
+                guidance = (
+                    f"Ta có, {ip}/{mask} là địa chỉ {type_address}.\n"
+                    f"=> Địa chỉ mạng là {network_address}, mạng này có phạm vi là 2^(32-{mask}) = {total}.\n"
+                    f"Với yêu cầu {num_subnets} mạng thì mỗi mạng sẽ có phạm vi tối đa là ({total}/{num_subnets}) = {max_per_subnet}.\n"
+                    f"Vì tối đa chỉ {max_per_subnet} nên mỗi mạng con sẽ có phạm vi {1 << (station_part)} = 2^{station_part} địa chỉ.\n"
+                    f"=> Mỗi mạng sẽ cần {station_part} bit phần trạm.\n"
+                    f"=> Số bit phần mạng là 32 - {station_part} = {new_mask}. Do đó, có các mạng con mới /{new_mask}."
+                )
+                                    
             elif algorithm == "VLSM":
                 host_requirements = list(map(int, extra_input.split(',')))
                 vlsm = VLSM(ip, mask)
                 subnets = vlsm.calculate_subnets(host_requirements)
                 network_address = vlsm.network_address
                 broadcast_address = vlsm.broadcast_address 
-                total = 1 << (32 - mask)
-                max_per_subnet = total // num_subnets
-                new_mask = cidr.prefix_length     
-                station_part = 32 - new_mask 
+                
+                if ip == network_address:
+                    type_address = "mạng"
+                elif ip == broadcast_address:
+                    type_address = "quảng bá"
+                else:
+                    type_address = "trạm"
+
+                guidance = (
+                    f"Ta có, {ip}/{mask} là địa chỉ {type_address}.\n"
+                    f"=> Địa chỉ mạng {network_address}/{mask} này có số bit phần trạm là 32 - {mask} = {32 - mask}bit.\n"
+                    f"Theo VLSM, việc chia mạng sẽ bắt đầu từ yêu cầu lớn nhất trước.\n"
+                    f"Nên các yêu cầu sẽ được sắp xếp lại theo thứ tự {', '.join(map(str, host_requirements))}.\n"
+                )
 
 
             self.display_output(subnets)            

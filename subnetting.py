@@ -144,7 +144,7 @@ class VLSM(Subnetting):
 
 if __name__ == "__main__":
     mode = input("Chọn chế độ (CIDR/VLSM): ").strip().upper()
-    ip, mask = input("Nhập địa chỉ IP và mặt nạ mạng (VD: 192.168.1.0/24): ")
+    ip, mask = input("Nhập địa chỉ IP và mặt nạ mạng (VD: 192.168.1.0/24): ").strip().split('/')
 
     if mode == "CIDR":
         num_subnets = int(input("Nhập số mạng con cần chia: ").strip())
