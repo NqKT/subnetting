@@ -71,6 +71,14 @@ def main():
         ip_input = input("Nhập địa chỉ IP và mặt nạ mạng (VD: 192.168.1.0/24): ").strip()
         ip, mask = ip_input.split('/')
 
+        try:
+            network = ipaddress.IPv4Network(ip_input, strict=False)
+            ip = str(network.network_address)
+            mask = network.prefixlen
+        except ValueError as e:
+            print(f"Lỗi: Địa chỉ IP hoặc mặt nạ mạng không hợp lệ. {e}")
+            return
+        
         if mode == "CIDR":
             num_subnets = int(input("Nhập số mạng con cần chia: ").strip())
             cidr = CIDR(ip, mask)
