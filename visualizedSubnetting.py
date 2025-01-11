@@ -201,6 +201,12 @@ class SubnettingApp(QMainWindow):
             ip, mask = ip_mask.split('/')
             mask = int(mask)
 
+            if not is_ip(ip):
+                raise ValueError("Địa chỉ IP không hợp lệ")
+            
+            if not is_mask(mask):
+                raise ValueError("Mặt nạ mạng không nằm trong khoảng 1 - 32")
+            
             ip_address = Subnetting(ip, mask)
             if ip == ip_address.network_address:
                 reply = QMessageBox.information(self, "Thông báo", f"Đây là địa chỉ mạng. Bạn vẫn sẽ chia mạng từ địa chỉ {ip} chứ?", QMessageBox.Ok | QMessageBox.Cancel)
@@ -215,8 +221,8 @@ class SubnettingApp(QMainWindow):
                 if reply == QMessageBox.Cancel:
                     return
 
-        except ValueError:
-            QMessageBox.warning(self, "Lỗi", "Địa chỉ IP hoặc mặt nạ mạng không hợp lệ.")
+        except ValueError as e:
+            QMessageBox.warning(self, "Lỗi", f"{str(e)}. Vui lòng nhập lại đúng định dạng.")
             return
 
         try:

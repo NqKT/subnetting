@@ -141,10 +141,32 @@ class VLSM(Subnetting):
             self.available_network = self.binary_to_ip(self.decimal_to_binary(next_network_decimal))
         return subnets
 
+def is_ip(ip):
+    octets = ip.split('.')
+    if len(octets) != 4:
+        return False
+    for octet in octets:
+        if not (0 <= int(octet) <= 255):
+            return False
+    return True
+
+def is_mask(mask):
+    return 0 < int(mask) <= 32
 
 if __name__ == "__main__":
     mode = input("Chọn chế độ (CIDR/VLSM): ").strip().upper()
-    ip, mask = input("Nhập địa chỉ IP và mặt nạ mạng (VD: 192.168.1.0/24): ").strip().split('/')
+    ip_mask = input("Nhập địa chỉ IP và mặt nạ mạng (VD: 192.168.1.0/24): ").strip()
+
+    try:
+        ip, mask = ip_mask.split('/')
+        if not is_ip(ip):
+            raise ValueError("Địa chỉ IP không hợp lệ.")
+        if not is_mask(mask):
+            raise ValueError("Mặt nạ mạng không hợp lệ.")
+        mask = int(mask)  # Chuyển mặt nạ mạng thành số nguyên
+    except ValueError as e:
+        print(f"Lỗi: {e}")
+        exit(1)
 
     if mode == "CIDR":
         num_subnets = int(input("Nhập số mạng con cần chia: ").strip())
