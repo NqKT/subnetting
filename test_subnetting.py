@@ -56,4 +56,3 @@ def test_vlsm_calculate_subnets():
         {"Địa chỉ mạng": "192.168.1.128/28", "Dải địa chỉ": "192.168.1.129 - 192.168.1.142", "Địa chỉ broadcast": "192.168.1.143", "Số lượng host": 14},
     ]
     assert subnets == expected_subnets
-

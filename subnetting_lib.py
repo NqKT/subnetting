@@ -16,13 +16,17 @@ class Subnetting:
         }
 
 class CIDR(Subnetting):
+    def __init__(self, ip, mask):
+        super().__init__(ip, mask)
+        self.prefix_length = None
+
     def calculate_subnets(self, num_subnets):    
         if self.network.num_addresses/num_subnets < 1:
             raise ValueError(f"Không thể chia vì với {num_subnets} mạng con thì mỗi mạng có 0 địa chỉ khả dụng .")
         else:
-            prefix_length = 32 - floor(log2(self.network.num_addresses/num_subnets))       
+            self.prefix_length = 32 - floor(log2(self.network.num_addresses/num_subnets))       
         subnets = []
-        subnet_networks = list(self.network.subnets(new_prefix=prefix_length))
+        subnet_networks = list(self.network.subnets(new_prefix=self.prefix_length))
 
         for i in range(num_subnets):
             subnet = Subnetting(

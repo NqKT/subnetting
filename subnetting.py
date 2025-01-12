@@ -35,9 +35,8 @@ class Subnetting:
         return binary_ip
 
     def binary_to_ip(self, binary_ip):
-    # Chuyển đổi nhị phân sang thập phân
         ip = ''
-        for i in range(0, 32, 8):  # Chia chuỗi nhị phân thành các nhóm 8 bit
+        for i in range(0, 32, 8):
             binary_octet = binary_ip[i:i + 8]
             decimal = 0
             for bit in binary_octet:
@@ -87,7 +86,6 @@ class Subnetting:
             "Số lượng host": self.calculate_num_hosts(self.mask),
         }
 
-
 class CIDR(Subnetting):
     def __init__(self, ip, mask):
         super().__init__(ip, mask)
@@ -108,7 +106,6 @@ class CIDR(Subnetting):
             subnet = Subnetting(subnet_ip, self.prefix_length)
             subnets.append(subnet.get_network_details())
         return subnets
-
 
 class VLSM(Subnetting):
     def __init__(self, ip, mask):

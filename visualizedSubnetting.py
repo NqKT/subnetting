@@ -21,7 +21,6 @@ class SubnettingApp(QMainWindow):
         self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
 
-        # Đặt hình nền với lớp phủ mờ
         self.central_widget.setStyleSheet("""
             background-image: url('bg.webp');
             background-repeat: no-repeat;
@@ -29,7 +28,6 @@ class SubnettingApp(QMainWindow):
             background-size: cover;
         """)
 
-        # Thêm lớp phủ mờ cho toàn bộ widget
         overlay = QLabel(self.central_widget)
         overlay.setStyleSheet("""
             background-color: rgba(255, 255, 255, 0.7); /* Lớp phủ màu trắng, mờ 70% */
@@ -208,11 +206,7 @@ class SubnettingApp(QMainWindow):
                 raise ValueError("Mặt nạ mạng không nằm trong khoảng 1 - 32")
             
             ip_address = Subnetting(ip, mask)
-            if ip == ip_address.network_address:
-                reply = QMessageBox.information(self, "Thông báo", f"Đây là địa chỉ mạng. Bạn vẫn sẽ chia mạng từ địa chỉ {ip} chứ?", QMessageBox.Ok | QMessageBox.Cancel)
-                if reply == QMessageBox.Cancel:
-                    return
-            elif ip == ip_address.broadcast_address:
+            if ip == ip_address.broadcast_address:
                 reply = QMessageBox.information(self, "Thông báo", f"Đây là địa chỉ broadcast. Bạn vẫn sẽ chia mạng từ địa chỉ {ip} chứ?", QMessageBox.Ok | QMessageBox.Cancel)
                 if reply == QMessageBox.Cancel:
                     return
@@ -284,7 +278,7 @@ class SubnettingApp(QMainWindow):
             self.topology_button.show() 
 
         except ValueError as e:
-            QMessageBox.warning(self, "Lỗi", str(e))
+            QMessageBox.warning(self, "Lỗi", "Chưa nhập yêu cầu!x")
 
     def display_output(self, subnets):
         self.output_area.clear()
