@@ -206,15 +206,34 @@ class SubnettingApp(QMainWindow):
                 raise ValueError("Mặt nạ mạng không nằm trong khoảng 1 - 32")
             
             ip_address = Subnetting(ip, mask)
-            if ip == ip_address.broadcast_address:
-                reply = QMessageBox.information(self, "Thông báo", f"Đây là địa chỉ broadcast. Bạn vẫn sẽ chia mạng từ địa chỉ {ip} chứ?", QMessageBox.Ok | QMessageBox.Cancel)
-                if reply == QMessageBox.Cancel:
-                    return
-            else:
-                reply = QMessageBox.information(self, "Thông báo", f"Đây là địa chỉ trạm. Bạn vẫn sẽ chia mạng từ địa chỉ {ip} chứ?", QMessageBox.Ok | QMessageBox.Cancel)
-                if reply == QMessageBox.Cancel:
-                    return
-
+            ip_decimal = IPAddressConvert.binary_to_decimal(IPAddressConvert.ip_to_binary(ip))
+            octets = ip.split('.')
+            for i, octet in enumerate(octets):
+                if i == 0 and (240 <= int(octet) <= 255):
+                    reply = QMessageBox.information(self, "Thông báo", f"Đây là địa chỉ thuộc lớp E. Bạn vẫn sẽ chia mạng từ địa chỉ {ip} chứ?", QMessageBox.Ok | QMessageBox.Cancel)
+                    if reply == QMessageBox.Cancel:
+                        return     
+                    break   
+                elif ip_decimal == 0:
+                    reply = QMessageBox.information(self, "Thông báo", f"Đây là địa chỉ IP dành riêng. Bạn vẫn sẽ chia mạng từ địa chỉ {ip} chứ?", QMessageBox.Ok | QMessageBox.Cancel)
+                    if reply == QMessageBox.Cancel:
+                        return     
+                    break        
+                else:
+                    if ip == ip_address.network_address:
+                        reply = QMessageBox.information(self, "Thông báo", f"{ip} là địa chỉ mạng, bạn sẽ tiếp tục với nó chứ?", QMessageBox.Ok | QMessageBox.Cancel)
+                        if reply == QMessageBox.Cancel:
+                            return                    
+                    elif ip == ip_address.broadcast_address:
+                        reply = QMessageBox.information(self, "Thông báo", f"Đây là địa chỉ broadcast. Bạn vẫn sẽ chia mạng từ địa chỉ {ip} chứ?", QMessageBox.Ok | QMessageBox.Cancel)
+                        if reply == QMessageBox.Cancel:
+                            return
+                    else:
+                        reply = QMessageBox.information(self, "Thông báo", f"Đây là địa chỉ trạm. Bạn vẫn sẽ chia mạng từ địa chỉ {ip} chứ?", QMessageBox.Ok | QMessageBox.Cancel)
+                        if reply == QMessageBox.Cancel:
+                            return
+                    break
+            
         except ValueError as e:
             QMessageBox.warning(self, "Lỗi", f"{str(e)}. Vui lòng nhập lại đúng định dạng.")
             return
@@ -240,12 +259,12 @@ class SubnettingApp(QMainWindow):
                 else:
                     type_address = "trạm"
                 guidance = (
-                    f"Ta có, {ip}/{mask} là địa chỉ {type_address}.\n"
-                    f"=> Địa chỉ mạng là {network_address}, mạng này có phạm vi là 2^(32-{mask}) = {total}.\n"
-                    f"Với yêu cầu {num_subnets} mạng thì mỗi mạng sẽ có phạm vi tối đa là ({total}/{num_subnets}) = {max_per_subnet}.\n"
-                    f"Vì tối đa chỉ {max_per_subnet} nên mỗi mạng con sẽ có phạm vi {1 << (station_part)} = 2^{station_part} địa chỉ.\n"
-                    f"=> Mỗi mạng sẽ cần {station_part} bit phần trạm.\n"
-                    f"=> Số bit phần mạng là 32 - {station_part} = {new_mask}. Do đó, có các mạng con mới /{new_mask}."
+                    f"Bước 1: Phân loại địa chỉ: Ta có, {ip}/{mask} là địa chỉ {type_address}.\n"
+                    f"Bước 2: Xác định địa chỉ mạng: {network_address}, mạng này có phạm vi là 2^(32-{mask}) = {total}.\n"
+                    f"Bước 3: Tính phạm vi địa chỉ tối đa theo yêu cầu: \nVới yêu cầu {num_subnets} mạng thì mỗi mạng sẽ có phạm vi tối đa là ({total}/{num_subnets}) = {max_per_subnet}.\n"
+                    f"Bước 4: Tính phạm vi địa chỉ tối đa của mạng: \nVì tối đa chỉ {max_per_subnet} nên mỗi mạng con sẽ có phạm vi {1 << (station_part)} = 2^{station_part} địa chỉ.\n"
+                    f"Bước 5: Xác định số bit phần trạm: Mỗi mạng sẽ cần {station_part} bit phần trạm.\n"
+                    f"Bước 6: Xác định mặt nạ mạng con mới: Số bit phần mạng là 32 - {station_part} = {new_mask}. Do đó, có các mạng con mới /{new_mask}."
                 )
                                     
             elif algorithm == "VLSM":
@@ -263,10 +282,11 @@ class SubnettingApp(QMainWindow):
                     type_address = "trạm"
 
                 guidance = (
-                    f"Ta có, {ip}/{mask} là địa chỉ {type_address}.\n"
-                    f"=> Địa chỉ mạng {network_address}/{mask} này có số bit phần trạm là 32 - {mask} = {32 - mask}bit.\n"
-                    f"Theo VLSM, việc chia mạng sẽ bắt đầu từ yêu cầu lớn nhất trước.\n"
-                    f"Nên các yêu cầu sẽ được sắp xếp lại theo thứ tự {', '.join(map(str, host_requirements))}.\n"
+                    f"Bước 1: Phân loại địa chỉ: Ta có, {ip}/{mask} là địa chỉ {type_address}.\n"
+                    f"Bước 2: Xác định địa chỉ mạng: Địa chỉ mạng {network_address}/{mask} này có số bit phần trạm là 32 - {mask} = {32 - mask}bit.\n"
+                    f"Bước 3: Theo VLSM, việc chia mạng sẽ bắt đầu từ yêu cầu lớn nhất trước.\n"
+                    f"Bước 4: Chia mạng theo thứ tự yêu cầu được sắp xếp lại theo thứ tự {', '.join(map(str, host_requirements))}.\n"
+                    f"*Chú ý: Với VLSM, nếu giữa 2 yêu cầu chỉ chêch lệch 1 bit\n   Chúng ta sẽ không chia mà cấp luôn mạng con phía trước."
                 )
 
 
@@ -278,7 +298,7 @@ class SubnettingApp(QMainWindow):
             self.topology_button.show() 
 
         except ValueError as e:
-            QMessageBox.warning(self, "Lỗi", "Chưa nhập yêu cầu!x")
+            QMessageBox.warning(self, "Lỗi", "Chưa nhập yêu cầu!")
 
     def display_output(self, subnets):
         self.output_area.clear()
@@ -364,10 +384,12 @@ class SubnettingApp(QMainWindow):
 
     def export_results(self):
         file_path, _ = QFileDialog.getSaveFileName(self, "Lưu kết quả", "", "Text Files (*.txt);;All Files (*)")
-        if file_path:
-            with open(file_path, 'w', encoding='utf-8') as file:
-                file.write(self.output_area.toPlainText())
-            QMessageBox.information(self, "Thành công", f"Kết quả đã được lưu tại: {file_path}")
+        if file_path:               
+                with open(file_path, 'w', encoding='utf-8') as file:
+                    file.write(self.guidance_area.toPlainText())
+                    file.write("\n\n\n Kết quả chia mạng: \n\n")
+                    file.write(self.output_area.toPlainText())
+                QMessageBox.information(self, "Thành công", f"Kết quả đã được lưu tại: {file_path}")
 
     def show_topology(self):    
         topology_dialog = TopologyDialog(self.scene, self)
